@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Inspection</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+            margin: 20px 0;
+            font-size: 24px;
+        }
+        form {
+            background-color: #fff;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="date"], input[type="file"], button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+            overflow: hidden;
+            white-space: normal; /* อนุญาตให้ข้อความตัดบรรทัด */
+            word-wrap: break-word; /* ให้คำยาวๆ ตัดบรรทัด */
+        }
+        table th {
+            background-color: #f2f2f2;
+            font-size: 16px;
+        }
+        table td {
+            vertical-align: top;
+            font-size: 14px;
+        }
+        .highlight-row {
+            background-color: #fff9c4;
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            margin: 10px 0;
+        }
+        .radio-group label {
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+        .radio-group input[type="radio"] {
+            display: none;
+        }
+        .radio-group input[type="radio"]:checked + label {
+            background-color: #4CAF50;
+            color: white;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+
+        @media (max-width: 600px) {
+            form {
+                margin: 10px;
+                padding: 15px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            table th, table td {
+                font-size: 14px;
+                padding: 8px;
+            }
+            button {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Vehicle Inspection Report</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <label for="license_plate">ทะเบียนรถ:</label>
+        <input type="text" id="license_plate" name="license_plate" required><br>
+
+        <label for="date">วันที่:</label>
+        <input type="date" id="date" name="date" required><br>
+
+        <label for="driver">พนักงานขับรถ:</label>
+        <input type="text" id="driver" name="driver" required><br>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ลำดับ</th>
+                    <th>รายการตรวจสอบ</th>
+                    <th>สถานะ</th>
+                    <th>รูปภาพ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr class="{% if item.important %}highlight-row{% endif %}">
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>
+                            <div class="radio-group">
+                                <input type="radio" id="passed_{{ item.id }}" name="status_{{ item.id }}" value="พร้อมใช้งาน" required>
+                                <label for="passed_{{ item.id }}">พร้อมใช้งาน</label>
+
+                                <input type="radio" id="failed_{{ item.id }}" name="status_{{ item.id }}" value="ไม่พร้อมใช้งาน">
+                                <label for="failed_{{ item.id }}">ไม่พร้อมใช้งาน</label>
+
+                                <input type="radio" id="not_applicable_{{ item.id }}" name="status_{{ item.id }}" value="ไม่เกี่ยวข้อง">
+                                <label for="not_applicable_{{ item.id }}">ไม่เกี่ยวข้อง</label>
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.important %}
+                                <input type="file" name="image_{{ item.id }}">
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
