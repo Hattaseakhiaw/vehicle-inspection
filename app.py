@@ -8,6 +8,7 @@ from openpyxl.drawing.image import Image  # เพิ่มการนำเข
 import pillow_heif
 from PIL import Image as PILImage
 from werkzeug.utils import secure_filename  # นำเข้า secure_filename ที่นี่
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 app = Flask(__name__)
 
@@ -112,7 +113,7 @@ inspection_items = [
 def send_email_with_attachment(excel_filename):
     msg = Message(
         'Inspection Report',  
-        recipients=['hatta.seak@gmail.com']  
+        recipients=['hatta.seak@gmail.com', 'songdee.eng@songdeegps.com']#,'songdee.eng@songdeegps.com']  # เพิ่มอีเมลที่ต้องการส่ง
     )
     with app.open_resource(excel_filename) as fp:
         msg.attach(excel_filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fp.read())
@@ -160,42 +161,77 @@ def index():
     return render_template('index.html', items=inspection_items)
 
 # สร้างไฟล์ Excel
+# สร้างไฟล์ Excel
 def generate_excel_report(data, license_plate, date, driver):
-    # สร้าง DataFrame สำหรับข้อมูลการตรวจสอบ
     df = pd.DataFrame(data)
 
-    # สร้างไฟล์ Excel
     excel_filename = f"static/{license_plate}_inspection_report_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.xlsx"
     
-    # เปิดไฟล์ Excel และเพิ่มข้อมูลการตรวจสอบ
     with pd.ExcelWriter(excel_filename, engine='openpyxl') as writer:
         workbook = writer.book
         sheet = workbook.create_sheet('Inspection Report')
+
+        # ตั้งค่าหัวข้อ
+        sheet['A1'], sheet['B1'] = 'License Plate', license_plate
+        sheet['A2'], sheet['B2'] = 'Date', date
+        sheet['A3'], sheet['B3'] = 'Driver', driver
+
+        # ตั้งค่าฟอนต์หัวข้อ
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="4F81BD", fill_type="solid")
         
-        # เพิ่มข้อมูลทะเบียนรถ, วันที่ และพนักงานขับรถในแถวแรก
-        sheet['A1'] = 'License Plate'
-        sheet['B1'] = license_plate
-        sheet['A2'] = 'Date'
-        sheet['B2'] = date
-        sheet['A3'] = 'Driver'
-        sheet['B3'] = driver
+        for col in ['A', 'B', 'C']:
+            for row in range(1, 4):
+                sheet[f'{col}{row}'].font = header_font
+                sheet[f'{col}{row}'].fill = header_fill
+                sheet[f'{col}{row}'].alignment = Alignment(horizontal='center')
 
-        # เขียนข้อมูลการตรวจสอบในเซลล์ถัดไป
-        for index, row in df.iterrows():
-            sheet.append([row['name'], row['status']])
+        # เขียนหัวตาราง
+        sheet.append(["Inspection Item", "Status", "Image"])
+        
+        row_index = 5  # เริ่มเขียนข้อมูลจากแถวที่ 5
 
-            # ถ้ามีไฟล์ภาพในคอลัมน์ 'image' ของข้อมูลการตรวจสอบ
-            if row['image']:
-                try:
-                    img = Image(row['image'])  # เพิ่มรูปภาพ
-                    img.width = 100  # ปรับขนาดภาพตามต้องการ
-                    img.height = 100
-                    # เพิ่มรูปภาพในเซลล์ที่เหมาะสม
-                    sheet.add_image(img, f'C{index + 4}')  # แทรกรูปในคอลัมน์ C
-                except Exception as e:
-                    print(f"Error inserting image: {e}")
+        for item in data:
+            # สีสำหรับรายการที่สำคัญ
+            important_fill = PatternFill(start_color="FFEB9C", fill_type="solid")  # สีเหลือง
+
+            # ตรวจสอบว่ารายการนี้สำคัญไหม และมาร์คสี
+            if item['name'] in important_items:
+                sheet.append([item['name'], item['status']])
+                sheet.row_dimensions[row_index].height = 100  # ปรับความสูงของแถวให้พอดีกับรูปภาพ
+                # มาร์คสีแถวสำหรับรายการสำคัญ
+                for col in ['A', 'B', 'C']:
+                    sheet[f'{col}{row_index}'].fill = important_fill
+
+                if item['image']:
+                    try:
+                        img = Image(item['image'])
+                        img.width, img.height = 150, 100  # ปรับขนาดรูปภาพ
+                        img_anchor = f"C{row_index}"  # ใส่รูปในคอลัมน์ C
+                        sheet.add_image(img, img_anchor)
+                    except Exception as e:
+                        print(f"Error inserting image: {e}")
+            else:
+                sheet.append([item['name'], item['status']])
+                sheet.row_dimensions[row_index].height = 100  # ปรับความสูงของแถวให้พอดีกับรูปภาพ
+                if item['image']:
+                    try:
+                        img = Image(item['image'])
+                        img.width, img.height = 150, 100  # ปรับขนาดรูปภาพ
+                        img_anchor = f"C{row_index}"  # ใส่รูปในคอลัมน์ C
+                        sheet.add_image(img, img_anchor)
+                    except Exception as e:
+                        print(f"Error inserting image: {e}")
+
+            row_index += 1  # ขยับไปแถวถัดไป
+
+        # ตั้งค่าความกว้างของคอลัมน์
+        sheet.column_dimensions['A'].width = 50  # รายการตรวจสอบ
+        sheet.column_dimensions['B'].width = 20  # สถานะ
+        sheet.column_dimensions['C'].width = 30  # รูปภาพ
 
     return excel_filename
+
 
 if __name__ == '__main__':
     app.run(debug=True)

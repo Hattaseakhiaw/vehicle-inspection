@@ -12,26 +12,34 @@
             padding: 0;
             color: #333;
         }
+
         h1 {
             text-align: center;
             color: #4CAF50;
             margin: 20px 0;
-            font-size: 24px;
+            font-size: 28px;
         }
+
         form {
             background-color: #fff;
-            margin: 20px;
-            padding: 20px;
+            margin: 20px auto;
+            padding: 30px;
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
         }
+
         label {
             display: block;
             margin: 10px 0 5px;
             font-size: 16px;
             font-weight: bold;
         }
-        input[type="text"], input[type="date"], input[type="file"], button {
+
+        input[type="text"],
+        input[type="date"],
+        input[type="file"],
+        button {
             width: 100%;
             padding: 12px;
             margin-bottom: 15px;
@@ -40,36 +48,44 @@
             border-radius: 8px;
             background-color: #fff;
         }
+
         table {
             width: 100%;
             margin-top: 20px;
             border-collapse: collapse;
-            table-layout: fixed;
+            table-layout: fixed; /* ใช้ fixed layout */
         }
-        table th, table td {
+
+        table th,
+        table td {
             padding: 10px;
             text-align: left;
             border: 1px solid #ddd;
             overflow: hidden;
-            white-space: normal; /* อนุญาตให้ข้อความตัดบรรทัด */
-            word-wrap: break-word; /* ให้คำยาวๆ ตัดบรรทัด */
+            white-space: normal;
+            word-wrap: break-word;
         }
+
         table th {
             background-color: #f2f2f2;
             font-size: 16px;
         }
+
         table td {
             vertical-align: top;
             font-size: 14px;
         }
+
         .highlight-row {
             background-color: #fff9c4;
         }
+
         .radio-group {
             display: flex;
             flex-direction: column;
             margin: 10px 0;
         }
+
         .radio-group label {
             font-size: 14px;
             padding: 5px 10px;
@@ -78,13 +94,16 @@
             cursor: pointer;
             margin-bottom: 5px;
         }
+
         .radio-group input[type="radio"] {
             display: none;
         }
+
         .radio-group input[type="radio"]:checked + label {
             background-color: #4CAF50;
             color: white;
         }
+
         button {
             background-color: #4CAF50;
             color: white;
@@ -94,22 +113,69 @@
             border-radius: 8px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #45a049;
         }
 
+        .cancel-button {
+            background-color: #f44336;
+        }
+
+        .cancel-button:hover {
+            background-color: #e53935;
+        }
+
+        .alert {
+            margin: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none; /* ซ่อนโดยเริ่มต้น */
+        }
+
+        .alert.success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+
+        .alert.error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+
+        /* ปรับขนาดตารางสำหรับมือถือ */
         @media (max-width: 600px) {
             form {
                 margin: 10px;
                 padding: 15px;
             }
+
             h1 {
                 font-size: 22px;
             }
-            table th, table td {
+
+            table th,
+            table td {
                 font-size: 14px;
                 padding: 8px;
             }
+
+            table td:first-child {
+                width: 10%; /* ขนาดคอลัมน์ลำดับ */
+            }
+
+            table td:nth-child(2) {
+                width: 50%; /* ขนาดคอลัมน์รายการตรวจสอบ */
+            }
+
+            table td:nth-child(3) {
+                width: 20%; /* ขนาดคอลัมน์สถานะ */
+            }
+
+            table td:nth-child(4) {
+                width: 20%; /* ขนาดคอลัมน์รูปภาพ */
+            }
+
             button {
                 font-size: 16px;
             }
@@ -118,15 +184,23 @@
 </head>
 <body>
     <h1>Vehicle Inspection Report</h1>
+    
+    <!-- แสดงข้อความแจ้งเตือน -->
+    {% if message %}
+        <div class="alert {{ 'success' if 'ส่งรายงาน' in message else 'error' }}">
+            {{ message }}
+        </div>
+    {% endif %}
+
     <form method="POST" enctype="multipart/form-data">
         <label for="license_plate">ทะเบียนรถ:</label>
-        <input type="text" id="license_plate" name="license_plate" required><br>
+        <input type="text" id="license_plate" name="license_plate" required placeholder="กรุณากรอกทะเบียนรถ">
 
         <label for="date">วันที่:</label>
-        <input type="date" id="date" name="date" required><br>
+        <input type="date" id="date" name="date" required>
 
         <label for="driver">พนักงานขับรถ:</label>
-        <input type="text" id="driver" name="driver" required><br>
+        <input type="text" id="driver" name="driver" required placeholder="กรุณากรอกชื่อพนักงานขับรถ">
 
         <table>
             <thead>
@@ -156,7 +230,7 @@
                         </td>
                         <td>
                             {% if item.important %}
-                                <input type="file" name="image_{{ item.id }}">
+                                <input type="file" name="image_{{ item.id }}" accept="image/*">
                             {% else %}
                                 N/A
                             {% endif %}
@@ -166,7 +240,18 @@
             </tbody>
         </table>
 
-        <button type="submit">Submit</button>
+        <button type="submit">ส่งรายงาน</button>
+        <button type="button" class="cancel-button" onclick="window.history.back();">ยกเลิก</button>
     </form>
+
+    <script>
+        // แสดงข้อความแจ้งเตือนเมื่อมีการส่งฟอร์ม
+        document.addEventListener('DOMContentLoaded', function() {
+            const alertBox = document.querySelector('.alert');
+            if (alertBox) {
+                alertBox.style.display = 'block'; // แสดงข้อความแจ้งเตือน
+            }
+        });
+    </script>
 </body>
 </html>
