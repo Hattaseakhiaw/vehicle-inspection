@@ -4,11 +4,11 @@ import pandas as pd
 import os
 from datetime import datetime
 from openpyxl import load_workbook
-from openpyxl.drawing.image import Image  # เพิ่มการนำเข้า Image
+from openpyxl.drawing.image import Image
 import pillow_heif
 from PIL import Image as PILImage
-from werkzeug.utils import secure_filename  # นำเข้า secure_filename ที่นี่
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from werkzeug.utils import secure_filename
+from openpyxl.styles import Font, PatternFill, Alignment
 
 app = Flask(__name__)
 
@@ -29,6 +29,11 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'heic', 'gif'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# ฟังก์ชันบีบอัดภาพ
+def compress_image(image_path, output_path, quality=85):
+    image = PILImage.open(image_path)
+    image.save(output_path, "JPEG", quality=quality)
 
 # ฟังก์ชันแปลง HEIC เป็น JPG
 def convert_heic_to_jpg(heic_path):
@@ -78,7 +83,7 @@ inspection_items = [
         "ไม้หมอนหนุนล้อ",
         "กรวยจราจร 2 อัน",
         "ถังเดรนประจำรถ ( ถังสแตนเลสสำหรับรถโซลเวนท์ )",
-        "ลิ่ม, ค้อน",
+               "ลิ่ม, ค้อน",
         "พลั่ว",
         "เสื้อกั๊กสะท้อนแสง",
         "วัสดุสำหรับซับสาร",
@@ -103,7 +108,7 @@ inspection_items = [
         "เกจแสดงความร้อนเครื่องยนต์ (ดิจิตอล)",
         "ข้อต่อเกลียวนอกละเอียดเกลียวในหยาบ 3 นิ้ว",
         "ข้อต่อเกลียวนอกหยาบเกลียวในละเอียด 3 นิ้ว",
-        "ข้อต่อตัวผู้ 3 นิ้ว เกลียวใน(Part  A)",
+        "ข้อต่อตัวผู้ 3 นิ้ว เกลียวใน(Part A)",
         "ข้อต่อตัวเมีย 3 นิ้ว เกลียวอก(Part B)",
         "หัวกรอกสำหรับกรอกสารเคมี"
     ])
@@ -113,7 +118,7 @@ inspection_items = [
 def send_email_with_attachment(excel_filename):
     msg = Message(
         'Inspection Report',  
-        recipients=['hatta.seak@gmail.com', 'songdee.eng@songdeegps.com']#,'songdee.eng@songdeegps.com']  # เพิ่มอีเมลที่ต้องการส่ง
+        recipients=['hatta.seak@gmail.com', 'songdee.eng@songdeegps.com']
     )
     with app.open_resource(excel_filename) as fp:
         msg.attach(excel_filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fp.read())
@@ -141,6 +146,10 @@ def index():
                 filename = secure_filename(image.filename)  # ใช้ secure_filename ที่นำเข้ามา
                 filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 image.save(filepath)
+
+                # บีบอัดภาพก่อนบันทึก
+                compress_image(filepath, filepath)
+
                 if filename.lower().endswith(".heic"):
                     convert_heic_to_jpg(filepath)
 
@@ -160,7 +169,6 @@ def index():
         return render_template('index.html', items=inspection_items, message="ส่งรายงานแล้ว")
     return render_template('index.html', items=inspection_items)
 
-# สร้างไฟล์ Excel
 # สร้างไฟล์ Excel
 def generate_excel_report(data, license_plate, date, driver):
     df = pd.DataFrame(data)
