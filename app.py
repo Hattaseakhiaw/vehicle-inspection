@@ -10,6 +10,7 @@ from PIL import Image as PILImage
 from werkzeug.utils import secure_filename
 from openpyxl.styles import Font, PatternFill, Alignment
 
+
 app = Flask(__name__)
 
 # การตั้งค่าการเชื่อมต่อกับเซิร์ฟเวอร์อีเมล
