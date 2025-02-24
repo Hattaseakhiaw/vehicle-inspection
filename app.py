@@ -116,11 +116,12 @@ inspection_items = [
 ]
 
 # ฟังก์ชันส่งอีเมล
-def send_email_with_attachment(excel_filename):
+def send_email_with_attachment(excel_filename, latitude, longitude):
     msg = Message(
         'Inspection Report',  
-        recipients=['hatta.seak@gmail.com', 'songdee.eng@songdeegps.com']
+        recipients=['Anchalee.k@monlogistics.com','Panida.s@monlogistics.com','hatta.seak@gmail.com']#, 'songdee.eng@songdeegps.com']
     )
+    msg.body = f"Latitude: {latitude}, Longitude: {longitude}"  # แสดงค่า latitude และ longitude
     with app.open_resource(excel_filename) as fp:
         msg.attach(excel_filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fp.read())
 
@@ -136,6 +137,8 @@ def index():
         license_plate = request.form['license_plate']
         date = request.form['date']
         driver = request.form['driver']
+        latitude = request.form['latitude']  # รับค่า latitude
+        longitude = request.form['longitude']  # รับค่า longitude
         inspection_data = []
 
         # เก็บข้อมูลการตรวจสอบ
@@ -162,16 +165,16 @@ def index():
             })
 
         # สร้างไฟล์ Excel
-        excel_filename = generate_excel_report(inspection_data, license_plate, date, driver)
+        excel_filename = generate_excel_report(inspection_data, license_plate, date, driver, latitude, longitude)
 
         # ส่งอีเมล
-        send_email_with_attachment(excel_filename)
+        send_email_with_attachment(excel_filename, latitude, longitude)
 
         return render_template('index.html', items=inspection_items, message="ส่งรายงานแล้ว")
     return render_template('index.html', items=inspection_items)
 
 # สร้างไฟล์ Excel
-def generate_excel_report(data, license_plate, date, driver):
+def generate_excel_report(data, license_plate, date, driver, latitude, longitude):
     df = pd.DataFrame(data)
 
     excel_filename = f"static/{license_plate}_inspection_report_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.xlsx"
@@ -184,13 +187,16 @@ def generate_excel_report(data, license_plate, date, driver):
         sheet['A1'], sheet['B1'] = 'License Plate', license_plate
         sheet['A2'], sheet['B2'] = 'Date', date
         sheet['A3'], sheet['B3'] = 'Driver', driver
+        sheet['A4'], sheet['B4'] = 'Latitude', latitude
+        sheet['A5'], sheet['B5'] = 'Longitude', longitude
+
 
         # ตั้งค่าฟอนต์หัวข้อ
         header_font = Font(bold=True, color="FFFFFF")
         header_fill = PatternFill(start_color="4F81BD", fill_type="solid")
         
         for col in ['A', 'B', 'C']:
-            for row in range(1, 4):
+            for row in range(1, 6):
                 sheet[f'{col}{row}'].font = header_font
                 sheet[f'{col}{row}'].fill = header_fill
                 sheet[f'{col}{row}'].alignment = Alignment(horizontal='center')
@@ -198,7 +204,7 @@ def generate_excel_report(data, license_plate, date, driver):
         # เขียนหัวตาราง
         sheet.append(["Inspection Item", "Status", "Image"])
         
-        row_index = 5  # เริ่มเขียนข้อมูลจากแถวที่ 5
+        row_index = 7  # เริ่มเขียนข้อมูลจากแถวที่ 5
 
         for item in data:
             # สีสำหรับรายการที่สำคัญ
@@ -242,5 +248,6 @@ def generate_excel_report(data, license_plate, date, driver):
     return excel_filename
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 3333))  # ใช้ค่า PORT ที่ Railway กำหนด ถ้าไม่มีให้ใช้ 8080
+    app.run(host="0.0.0.0", port=port)

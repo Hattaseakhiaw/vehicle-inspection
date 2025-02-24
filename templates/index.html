@@ -202,6 +202,10 @@
         <label for="driver">พนักงานขับรถ:</label>
         <input type="text" id="driver" name="driver" required placeholder="กรุณากรอกชื่อพนักงานขับรถ">
 
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+
+
         <table>
             <thead>
                 <tr>
@@ -251,6 +255,12 @@
             if (alertBox) {
                 alertBox.style.display = 'block'; // แสดงข้อความแจ้งเตือน
             }
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    document.getElementById('latitude').value = position.coords.latitude;
+                    document.getElementById('longitude').value = position.coords.longitude;
+                }
+                )}
         });
     </script>
 </body>
