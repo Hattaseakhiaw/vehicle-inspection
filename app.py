@@ -9,6 +9,7 @@ import pillow_heif
 from PIL import Image as PILImage
 from werkzeug.utils import secure_filename
 from openpyxl.styles import Font, PatternFill, Alignment
+import logging
 
 
 app = Flask(__name__)
@@ -20,6 +21,9 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'hatta.seakh@gmail.com'
 app.config['MAIL_PASSWORD'] = 'izpj wupb gxbu uysl'
 app.config['MAIL_DEFAULT_SENDER'] = 'hatta.seak@gmail.com'
+app.config['PROPAGATE_EXCEPTIONS'] = True
+app.logger.setLevel(logging.DEBUG)
+
 
 mail = Mail(app)
 
