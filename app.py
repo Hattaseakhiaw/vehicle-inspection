@@ -123,7 +123,7 @@ inspection_items = [
 def send_email_with_attachment(excel_filename, latitude, longitude):
     msg = Message(
         'Inspection Report',  
-        recipients=['hatta.seak@gmail.com']#,'Anchalee.k@monlogistics.com','Panida.s@monlogistics.com']#, 'songdee.eng@songdeegps.com']
+        recipients=['hatta.seak@gmail.com','Anchalee.k@monlogistics.com','Panida.s@monlogistics.com']#, 'songdee.eng@songdeegps.com']
     )
     msg.body = f"Latitude: {latitude}, Longitude: {longitude}"  # แสดงค่า latitude และ longitude
     with app.open_resource(excel_filename) as fp:
