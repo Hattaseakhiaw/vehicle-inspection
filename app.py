@@ -18,9 +18,9 @@ app = Flask(__name__)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'hatta.seakh@gmail.com'
-app.config['MAIL_PASSWORD'] = 'izpj wupb gxbu uysl'
-app.config['MAIL_DEFAULT_SENDER'] = 'hatta.seak@gmail.com'
+app.config['MAIL_USERNAME'] = 'Hatta@songdeegps.com'
+app.config['MAIL_PASSWORD'] = 'nttm urhc qupk xogt'
+app.config['MAIL_DEFAULT_SENDER'] = 'Hatta@songdeegps.com'
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.logger.setLevel(logging.DEBUG)
 
@@ -123,7 +123,7 @@ inspection_items = [
 def send_email_with_attachment(excel_filename, latitude, longitude):
     msg = Message(
         'Inspection Report',  
-        recipients=['hatta.seak@gmail.com']#,'Anchalee.k@monlogistics.com','Panida.s@monlogistics.com']#, 'songdee.eng@songdeegps.com']
+        recipients=['Hatta@songdeegps.com']#,'Anchalee.k@monlogistics.com','Panida.s@monlogistics.com']#, 'songdee.eng@songdeegps.com']
     )
     msg.body = f"Latitude: {latitude}, Longitude: {longitude}"  # แสดงค่า latitude และ longitude
     with app.open_resource(excel_filename) as fp:
